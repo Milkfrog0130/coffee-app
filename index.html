@@ -7,50 +7,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-        
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #F5F1ED;
-            margin: 0;
-            overflow: hidden;
-            height: 100vh;
-        }
-
-        /* 掃描動畫 */
-        .scan-line {
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #D4A373, transparent);
-            position: absolute;
-            width: 100%;
-            top: 0;
-            z-index: 10;
-            animation: scan 3s linear infinite;
-        }
-
-        @keyframes scan {
-            0% { top: 0; }
-            100% { top: 100%; }
-        }
-
-        .focus-frame {
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .focus-corner {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border-color: #D4A373;
-            border-style: solid;
-            z-index: 20;
-        }
-
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #F5F1ED; margin: 0; overflow: hidden; height: 100vh; }
+        .scan-line { height: 2px; background: linear-gradient(90deg, transparent, #D4A373, transparent); position: absolute; width: 100%; top: 0; z-index: 10; animation: scan 3s linear infinite; }
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+        .focus-frame { border: 2px solid rgba(255, 255, 255, 0.5); box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); }
+        .focus-corner { position: absolute; width: 20px; height: 20px; border-color: #D4A373; border-style: solid; z-index: 20; }
         .corner-tl { top: -2px; left: -2px; border-width: 4px 0 0 4px; border-radius: 4px 0 0 0; }
         .corner-tr { top: -2px; right: -2px; border-width: 4px 4px 0 0; border-radius: 0 4px 0 0; }
         .corner-bl { bottom: -2px; left: -2px; border-width: 0 0 4px 4px; border-radius: 0 0 0 4px; }
         .corner-br { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; border-radius: 0 0 4px 0; }
-
         .level-pill { transition: all 0.3s ease; }
         .active-level { background-color: #795548; color: white; }
     </style>
@@ -66,15 +31,13 @@
     <div class="relative w-72 h-96 flex items-center justify-center z-10">
         <div class="focus-frame w-full h-full rounded-3xl relative overflow-hidden bg-black">
             <video id="video" autoplay playsinline muted class="w-full h-full object-cover"></video>
-            
             <div class="scan-line"></div>
-            
             <div class="absolute inset-0 bg-black/20 pointer-events-none"></div>
-
             <div class="focus-corner corner-tl"></div>
             <div class="focus-corner corner-tr"></div>
             <div class="focus-corner corner-bl"></div>
             <div class="focus-corner corner-br"></div>
+            <div id="hint-text" class="absolute bottom-10 w-full text-center text-white/80 text-sm z-20">對準咖啡標籤<br>自動解析風味</div>
         </div>
     </div>
 
@@ -87,89 +50,82 @@
         <p class="text-gray-500 text-sm font-light">點擊拍照自動解析</p>
     </div>
 
-    <script>
-        // 相機啟動邏輯
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "environment" } 
-                });
-                const videoElement = document.getElementById('video');
-                videoElement.srcObject = stream;
-            } catch (err) {
-                console.error("相機啟動失敗:", err);
-                // 這裡可以在 UI 上提示用戶權限問題
-            }
-        }
-
-        window.addEventListener('load', startCamera);
-
-        // ... (其餘 setLevel 和 simulateScan 的 JavaScript) ...
-    </script>
-
-    <script>
-    // 註冊 Service Worker
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(reg => console.log('Service Worker 註冊成功！範圍:', reg.scope))
-                .catch(err => console.log('Service Worker 註冊失敗:', err));
-        });
-    }
-    
-    // (原本啟動相機的 startCamera 等其他 function 放在這裡後面...)
-    </script>
+    <div id="result-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden items-center justify-center p-6">
+        <div class="bg-[#FDFCFB] w-full max-w-xs rounded-3xl overflow-hidden shadow-2xl">
+            <div id="result-header" class="h-32 bg-[#FFB347] flex items-center justify-center relative">
+                <button onclick="closeModal()" class="absolute top-4 right-4 text-white/80 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round"></path></svg>
+                </button>
+                <div class="text-center text-white">
+                    <p class="text-xs opacity-80 uppercase tracking-widest mb-1">今日推薦風味</p>
+                    <h2 id="result-vibe" class="text-2xl font-bold">解析中...</h2>
+                </div>
+            </div>
+            <div class="p-6">
+                <p id="result-desc" class="text-gray-600 text-sm leading-relaxed mb-6">請稍候，正在為您讀取知識庫...</p>
+                <button onclick="closeModal()" class="w-full py-3 bg-[#795548] text-white rounded-xl font-medium">加入我的筆記本</button>
+            </div>
+        </div>
+    </div>
 
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+    <script>
+        let currentLevel = '初級';
 
-<script>
-async function simulateScan() {
-    const video = document.getElementById('video');
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
-    // 1. 擷取相機目前的畫面
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    const imageData = canvas.toDataURL('image/png');
+        function setLevel(level) {
+            currentLevel = level;
+            ['初級', '中級', '專業'].forEach(l => {
+                const btn = document.getElementById(`btn-${l}`);
+                btn.className = l === level ? 'level-pill active-level px-6 py-2 rounded-full text-sm font-medium' : 'level-pill px-6 py-2 rounded-full text-sm font-medium text-gray-600';
+            });
+            document.getElementById('hint-text').innerHTML = level === '初級' ? '對準咖啡標籤<br>自動解析風味' : '正在讀取專業數據模式...';
+        }
 
-    // 顯示「辨識中...」的提示
-    document.getElementById('hint-text').innerText = "辨識中，請稍候...";
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                document.getElementById('video').srcObject = stream;
+            } catch (err) { console.error("相機失敗:", err); }
+        }
 
-    // 2. 使用 Tesseract.js 辨識文字
-    Tesseract.recognize(imageData, 'eng+chi_tra').then(({ data: { text } }) => {
-        console.log("辨識結果:", text);
-        matchCoffeeData(text); // 執行比對邏輯
-    });
-}
+        async function simulateScan() {
+            const video = document.getElementById('video');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            document.getElementById('hint-text').innerText = "AI 正在讀取標籤...";
+            
+            Tesseract.recognize(canvas.toDataURL(), 'eng+chi_tra').then(({ data: { text } }) => {
+                matchCoffeeData(text);
+            });
+        }
 
-// 3. 比對你的 coffee_data.json
-async function matchCoffeeData(scannedText) {
-    const response = await fetch('/coffee_data.json'); // 讀取你 GitHub 上的資料庫 [cite: 5]
-    const coffeeData = await response.json();
-    
-    // 簡單的關鍵字比對
-    const result = coffeeData.find(item => 
-        scannedText.includes(item.origin) || scannedText.includes(item.name)
-    ) || coffeeData[0]; // 若沒對到，預設顯示第一個 (例如衣索比亞) [cite: 4]
+        async function matchCoffeeData(scannedText) {
+            try {
+                const response = await fetch('/coffee_data.json');
+                const coffeeData = await response.json();
+                const result = coffeeData.find(item => scannedText.toLowerCase().includes(item.origin.toLowerCase()) || scannedText.toLowerCase().includes(item.name.toLowerCase())) || coffeeData[0];
+                showModalWithData(result);
+            } catch (e) { console.error("資料庫讀取失敗", e); }
+        }
 
-    showModalWithData(result);
-}
+        function showModalWithData(data) {
+            document.getElementById('result-vibe').innerText = data.beginner.vibe;
+            document.getElementById('result-desc').innerText = data.beginner.summary;
+            document.getElementById('result-modal').classList.replace('hidden', 'flex');
+        }
 
-function showModalWithData(data) {
-    const modal = document.getElementById('result-modal');
-    const vibe = document.getElementById('result-vibe');
-    const desc = document.getElementById('result-desc');
+        function closeModal() {
+            document.getElementById('result-modal').classList.replace('flex', 'hidden');
+            document.getElementById('hint-text').innerHTML = "對準咖啡標籤<br>自動解析風味";
+        }
 
-    // 根據你設定的「初級」內容顯示 [cite: 4]
-    vibe.innerText = data.beginner.vibe; 
-    desc.innerText = data.beginner.summary;
-
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    document.getElementById('hint-text').innerHTML = "對準咖啡標籤<br>自動解析風味";
-}
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js'); });
+        }
+        window.addEventListener('load', startCamera);
     </script>
-    
 </body>
 </html>
