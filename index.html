@@ -106,5 +106,19 @@
 
         // ... (其餘 setLevel 和 simulateScan 的 JavaScript) ...
     </script>
+
+    <script>
+    // 註冊 Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('Service Worker 註冊成功！範圍:', reg.scope))
+                .catch(err => console.log('Service Worker 註冊失敗:', err));
+        });
+    }
+    
+    // (原本啟動相機的 startCamera 等其他 function 放在這裡後面...)
+    </script>
+    
 </body>
 </html>
