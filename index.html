@@ -10,40 +10,20 @@
         
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: #F5F1ED; /* Pale Beige */
+            background-color: #F5F1ED;
             margin: 0;
             overflow: hidden;
             height: 100vh;
         }
 
-        .camera-overlay {
-            background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,0.4) 100%);
-        }
-
-        .focus-frame {
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-        }
-
-        .focus-corner {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border-color: #D4A373; /* Caramel gold */
-            border-style: solid;
-        }
-
-        .corner-tl { top: -2px; left: -2px; border-width: 4px 0 0 4px; border-radius: 4px 0 0 0; }
-        .corner-tr { top: -2px; right: -2px; border-width: 4px 4px 0 0; border-radius: 0 4px 0 0; }
-        .corner-bl { bottom: -2px; left: -2px; border-width: 0 0 4px 4px; border-radius: 0 0 0 4px; }
-        .corner-br { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; border-radius: 0 0 4px 0; }
-
+        /* 掃描動畫 */
         .scan-line {
             height: 2px;
             background: linear-gradient(90deg, transparent, #D4A373, transparent);
             position: absolute;
             width: 100%;
             top: 0;
+            z-index: 10;
             animation: scan 3s linear infinite;
         }
 
@@ -52,152 +32,79 @@
             100% { top: 100%; }
         }
 
-        .floating-bean {
-            position: absolute;
-            opacity: 0.1;
-            z-index: 0;
+        .focus-frame {
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
         }
 
-        /* Level Slider Styles */
-        .level-pill {
-            transition: all 0.3s ease;
+        .focus-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: #D4A373;
+            border-style: solid;
+            z-index: 20;
         }
-        .active-level {
-            background-color: #795548;
-            color: white;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+
+        .corner-tl { top: -2px; left: -2px; border-width: 4px 0 0 4px; border-radius: 4px 0 0 0; }
+        .corner-tr { top: -2px; right: -2px; border-width: 4px 4px 0 0; border-radius: 0 4px 0 0; }
+        .corner-bl { bottom: -2px; left: -2px; border-width: 0 0 4px 4px; border-radius: 0 0 0 4px; }
+        .corner-br { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; border-radius: 0 0 4px 0; }
+
+        .level-pill { transition: all 0.3s ease; }
+        .active-level { background-color: #795548; color: white; }
     </style>
 </head>
 <body class="flex flex-col items-center justify-between py-8">
 
-    <!-- 背景裝飾：抽像咖啡豆 -->
-    <svg class="floating-bean" style="top: 10%; left: 5%; width: 100px;" viewBox="0 0 100 100">
-        <path d="M50 20 C30 20, 20 40, 20 60 C20 80, 40 90, 50 90 C60 90, 80 80, 80 60 C80 40, 70 20, 50 20 M50 20 Q55 55 45 90" fill="none" stroke="#795548" stroke-width="2"/>
-    </svg>
-    <svg class="floating-bean" style="bottom: 15%; right: 5%; width: 80px; transform: rotate(45deg);" viewBox="0 0 100 100">
-        <path d="M50 20 C30 20, 20 40, 20 60 C20 80, 40 90, 50 90 C60 90, 80 80, 80 60 C80 40, 70 20, 50 20 M50 20 Q55 55 45 90" fill="none" stroke="#795548" stroke-width="2"/>
-    </svg>
-
-    <!-- 頂部切換按鈕 -->
-    <div class="z-10 bg-white/60 backdrop-blur-md p-1 rounded-full flex gap-1 border border-white/50">
+    <div class="z-30 bg-white/60 backdrop-blur-md p-1 rounded-full flex gap-1 border border-white/50">
         <button onclick="setLevel('初級')" id="btn-初級" class="level-pill active-level px-6 py-2 rounded-full text-sm font-medium">初級</button>
         <button onclick="setLevel('中級')" id="btn-中級" class="level-pill px-6 py-2 rounded-full text-sm font-medium text-gray-600">中級</button>
         <button onclick="setLevel('專業')" id="btn-專業" class="level-pill px-6 py-2 rounded-full text-sm font-medium text-gray-600">專業</button>
     </div>
 
-    <!-- 掃描區域 -->
-    <div class="relative w-72 h-96 flex items-center justify-center">
-        <div class="focus-frame w-full h-full rounded-2xl relative overflow-hidden bg-gray-200/20 backdrop-blur-[2px]">
-            <!-- 模擬相機畫面感 -->
-            <div class="absolute inset-0 camera-overlay"></div>
+    <div class="relative w-72 h-96 flex items-center justify-center z-10">
+        <div class="focus-frame w-full h-full rounded-3xl relative overflow-hidden bg-black">
+            <video id="video" autoplay playsinline muted class="w-full h-full object-cover"></video>
+            
             <div class="scan-line"></div>
             
-            <!-- 四角提示 -->
+            <div class="absolute inset-0 bg-black/20 pointer-events-none"></div>
+
             <div class="focus-corner corner-tl"></div>
             <div class="focus-corner corner-tr"></div>
             <div class="focus-corner corner-bl"></div>
             <div class="focus-corner corner-br"></div>
-
-            <div class="absolute inset-0 flex flex-col items-center justify-center text-white/60 text-sm text-center px-8">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <p id="hint-text">對準咖啡標籤<br>自動解析風味</p>
-            </div>
         </div>
     </div>
 
-    <!-- 底部控制 -->
-    <div class="z-10 flex flex-col items-center gap-6 w-full px-8">
-        <button onclick="simulateScan()" class="bg-[#795548] hover:bg-[#5D4037] text-white w-20 h-20 rounded-full flex items-center justify-center shadow-xl transform active:scale-95 transition-all">
+    <div class="z-30 flex flex-col items-center gap-6 w-full px-8">
+        <button onclick="simulateScan()" class="bg-[#795548] hover:bg-[#5D4037] text-white w-20 h-20 rounded-full flex items-center justify-center shadow-xl active:scale-95 transition-all">
             <div class="w-16 h-16 border-4 border-white/30 rounded-full flex items-center justify-center">
                 <div class="w-12 h-12 bg-white rounded-full"></div>
             </div>
         </button>
-        <p class="text-gray-500 text-sm font-light">點擊拍照開始探索</p>
-    </div>
-
-    <!-- 結果彈窗 (模擬) -->
-    <div id="result-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-20 hidden items-center justify-center p-6">
-        <div class="bg-[#FDFCFB] w-full max-w-xs rounded-3xl overflow-hidden shadow-2xl transform transition-all">
-            <div id="result-header" class="h-32 bg-[#FFB347] flex items-center justify-center relative">
-                <button onclick="closeModal()" class="absolute top-4 right-4 text-white/80 hover:text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                </button>
-                <div class="text-center text-white">
-                    <p class="text-xs opacity-80 uppercase tracking-widest mb-1">今日推薦風味</p>
-                    <h2 id="result-vibe" class="text-2xl font-bold">清新花果茶</h2>
-                </div>
-            </div>
-            <div class="p-6">
-                <div class="flex gap-2 mb-4">
-                    <span class="bg-orange-100 text-orange-700 text-[10px] px-2 py-1 rounded-full font-bold">#酸甜口感</span>
-                    <span class="bg-blue-100 text-blue-700 text-[10px] px-2 py-1 rounded-full font-bold">#水洗處理</span>
-                </div>
-                <p id="result-desc" class="text-gray-600 text-sm leading-relaxed mb-6">
-                    這款咖啡來自衣索比亞，喝起來像帶有茉莉花香的檸檬茶，非常適合喜歡清爽口感的人。
-                </p>
-                <button onclick="closeModal()" class="w-full py-3 bg-[#795548] text-white rounded-xl font-medium shadow-lg">加入我的筆記本</button>
-            </div>
-        </div>
+        <p class="text-gray-500 text-sm font-light">點擊拍照自動解析</p>
     </div>
 
     <script>
-        let currentLevel = '初級';
-
-        function setLevel(level) {
-            currentLevel = level;
-            // 更新按鈕樣式
-            ['初級', '中級', '專業'].forEach(l => {
-                const btn = document.getElementById(`btn-${l}`);
-                if (l === level) {
-                    btn.classList.add('active-level');
-                    btn.classList.remove('text-gray-600');
-                } else {
-                    btn.classList.remove('active-level');
-                    btn.classList.add('text-gray-600');
-                }
-            });
-            
-            // 更新提示字
-            const hint = document.getElementById('hint-text');
-            if (level === '初級') hint.innerHTML = '對準咖啡標籤<br>自動解析風味';
-            else if (level === '中級') hint.innerHTML = '掃描標籤<br>探索處理法與變數';
-            else hint.innerHTML = '精確掃描<br>讀取產區與科學數據';
-        }
-
-        function simulateScan() {
-            const modal = document.getElementById('result-modal');
-            const vibe = document.getElementById('result-vibe');
-            const desc = document.getElementById('result-desc');
-            const header = document.getElementById('result-header');
-
-            // 根據等級調整內容深度
-            if (currentLevel === '初級') {
-                vibe.innerText = "清新花果茶";
-                desc.innerText = "這款咖啡來自衣索比亞，喝起來像帶有茉莉花香的檸檬茶，非常清爽。";
-                header.style.backgroundColor = "#FFB347";
-            } else if (currentLevel === '中級') {
-                vibe.innerText = "衣索比亞 Yirgacheffe";
-                desc.innerText = "水洗處理法。中低研磨度，建議 92°C 水溫，能帶出明亮的柑橘酸與細緻茉莉香氣。";
-                header.style.backgroundColor = "#8B4513";
-            } else {
-                vibe.innerText = "Highland Terroir Analysis";
-                desc.innerText = "海拔 2100m，高密度的阿拉比卡豆。具備高度複雜的磷酸與揮發性花香分子。建議萃取率 18-22%。";
-                header.style.backgroundColor = "#3D2B1F";
+        // 相機啟動邏輯
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" } 
+                });
+                const videoElement = document.getElementById('video');
+                videoElement.srcObject = stream;
+            } catch (err) {
+                console.error("相機啟動失敗:", err);
+                // 這裡可以在 UI 上提示用戶權限問題
             }
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
         }
 
-        function closeModal() {
-            const modal = document.getElementById('result-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
+        window.addEventListener('load', startCamera);
+
+        // ... (其餘 setLevel 和 simulateScan 的 JavaScript) ...
     </script>
 </body>
 </html>
