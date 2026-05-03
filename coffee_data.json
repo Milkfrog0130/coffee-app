@@ -1,35 +1,44 @@
 [
   {
     "id": "ethiopia_light_washed",
-    "name": "衣索比亞 水洗 淺焙",
-    "level": "beginner",
-    "vibe": "清新花果茶",
-    "description": "喝起來像帶有茉莉花香的檸檬茶，口感非常乾淨清爽 [cite: 8]。",
-    "origin": "非洲 [cite: 8]",
-    "roast": "淺焙（酸甜感明顯） [cite: 3]",
-    "process": "水洗（最乾淨的風味） [cite: 1]",
-    "brew_tip": "建議用 $90^\circ\text{C}$ 的熱水沖煮，最能喝到花香 [cite: 7]。"
+    "origin": "衣索比亞",
+    "name": "Ethiopia",
+    "beginner": {
+      "vibe": "清新花果茶",
+      "summary": "喝起來像帶有茉莉花香的檸檬茶，口感乾淨清爽。"
+    },
+    "intermediate": {
+      "roast": "淺焙",
+      "process": "水洗",
+      "brew_tip": "建議水溫 90°C，最能喝到花香。"
+    }
   },
   {
     "id": "brazil_medium_natural",
-    "name": "巴西 日曬 中焙",
-    "level": "beginner",
-    "vibe": "巧克力堅果",
-    "description": "口感平衡，帶有堅果、黑巧克力與焦糖味，苦甜適中 [cite: 9]。",
-    "origin": "中南美洲 [cite: 9]",
-    "roast": "中焙（大眾最愛的平衡感） [cite: 3]",
-    "process": "日曬（甜度較高、口感厚實） [cite: 1]",
-    "brew_tip": "這款豆子很適合加牛奶做成拿鐵喔！ [cite: 3]"
+    "origin": "巴西",
+    "name": "Brazil",
+    "beginner": {
+      "vibe": "巧克力堅果",
+      "summary": "口感平衡，帶有堅果、黑巧克力與焦糖味，苦甜適中。"
+    },
+    "intermediate": {
+      "roast": "中焙",
+      "process": "日曬",
+      "brew_tip": "這款豆子很適合加牛奶做成拿鐵喔！"
+    }
   },
   {
     "id": "indonesia_dark_semiwashed",
-    "name": "印尼 曼特寧 深焙",
-    "level": "beginner",
-    "vibe": "沈穩森林木質",
-    "description": "幾乎不酸，有強烈的藥草與木質香氣，口感非常濃厚 [cite: 10]。",
-    "origin": "亞洲 [cite: 10]",
-    "roast": "深焙（完全不酸、濃郁苦甜） [cite: 3]",
-    "process": "半水洗/日曬（帶有草本泥土感） [cite: 10]",
-    "brew_tip": "水溫可以稍微低一點點（約 $88^\circ\text{C}$），減少焦苦味 [cite: 7]。"
+    "origin": "印尼",
+    "name": "Indonesia",
+    "beginner": {
+      "vibe": "沈穩森林木質",
+      "summary": "幾乎不酸，有強烈的藥草與木質香氣，口感濃厚。"
+    },
+    "intermediate": {
+      "roast": "深焙",
+      "process": "半水洗",
+      "brew_tip": "水溫建議 88°C，減少焦苦味。"
+    }
   }
 ]
