@@ -119,6 +119,57 @@
     
     // (原本啟動相機的 startCamera 等其他 function 放在這裡後面...)
     </script>
+
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+
+<script>
+async function simulateScan() {
+    const video = document.getElementById('video');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // 1. 擷取相機目前的畫面
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const imageData = canvas.toDataURL('image/png');
+
+    // 顯示「辨識中...」的提示
+    document.getElementById('hint-text').innerText = "辨識中，請稍候...";
+
+    // 2. 使用 Tesseract.js 辨識文字
+    Tesseract.recognize(imageData, 'eng+chi_tra').then(({ data: { text } }) => {
+        console.log("辨識結果:", text);
+        matchCoffeeData(text); // 執行比對邏輯
+    });
+}
+
+// 3. 比對你的 coffee_data.json
+async function matchCoffeeData(scannedText) {
+    const response = await fetch('/coffee_data.json'); // 讀取你 GitHub 上的資料庫 [cite: 5]
+    const coffeeData = await response.json();
+    
+    // 簡單的關鍵字比對
+    const result = coffeeData.find(item => 
+        scannedText.includes(item.origin) || scannedText.includes(item.name)
+    ) || coffeeData[0]; // 若沒對到，預設顯示第一個 (例如衣索比亞) [cite: 4]
+
+    showModalWithData(result);
+}
+
+function showModalWithData(data) {
+    const modal = document.getElementById('result-modal');
+    const vibe = document.getElementById('result-vibe');
+    const desc = document.getElementById('result-desc');
+
+    // 根據你設定的「初級」內容顯示 [cite: 4]
+    vibe.innerText = data.beginner.vibe; 
+    desc.innerText = data.beginner.summary;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.getElementById('hint-text').innerHTML = "對準咖啡標籤<br>自動解析風味";
+}
+    </script>
     
 </body>
 </html>
